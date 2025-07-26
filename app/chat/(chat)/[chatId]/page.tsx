@@ -11,6 +11,7 @@ import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ChatSkeleton } from '@/components/chat/chat-skeleton'
+import { toast } from 'sonner'
 
 interface ChatPageProps {
   params: {
@@ -29,7 +30,7 @@ export default function ChatPage({ params }: ChatPageProps) {
     const fetchChatDetails = async () => {
       const { data: chatData, error } = await supabase
         .from('chats')
-        .select('id, title')
+        .select('*')
         .eq('id', params.chatId)
         .single()
 
