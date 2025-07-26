@@ -6,18 +6,20 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/'
 
+  // Get the site URL from environment variables
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+  if (!siteUrl) {
+    throw new Error('Missing NEXT_PUBLIC_SITE_URL environment variable')
+  }
+
   if (code) {
     const supabase = createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
-      // Create a new URL object from the request URL
-      const url = new URL(request.url)
-      // Construct the final redirect URL using the correct host and the 'next' path
-      return NextResponse.redirect(`${url.origin}${next}`)
+      return NextResponse.redirect(`${siteUrl}${next}`)
     }
   }
 
   // return the user to an error page with instructions
-  const url = new URL(request.url)
-  return NextResponse.redirect(`${url.origin}/auth/auth-code-error`)
+  return NextResponse.redirect(`${siteUrl}/auth/auth-code-error`)
 }
