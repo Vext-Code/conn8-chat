@@ -37,7 +37,6 @@ export async function createNewChat(formData: FormData) {
     throw new Error('Failed to create chat')
   }
 
-  revalidatePath('/')
   redirect(`/chat/${chat.id}`)
 }
 
