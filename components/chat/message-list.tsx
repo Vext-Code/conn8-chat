@@ -16,8 +16,42 @@ interface MessageListProps {
 
 function AttachmentPreview({ message }: { message: Message }) {
   if (!message.attachment_url || !message.attachment_type) return null
-// ... (sisa kode AttachmentPreview tetap sama)
-// ...
+
+  const isImage = message.attachment_type.startsWith('image/')
+  const isAudio = message.attachment_type.startsWith('audio/')
+  const isVideo = message.attachment_type.startsWith('video/')
+
+  return (
+    <div className="mt-2">
+      {isImage ? (
+        <Link href={message.attachment_url} target="_blank" rel="noopener noreferrer">
+          <img
+            src={message.attachment_url}
+            alt="Lampiran gambar"
+            className="max-w-xs max-h-64 rounded-lg object-cover"
+          />
+        </Link>
+      ) : isAudio ? (
+        <audio controls src={message.attachment_url} className="w-full max-w-xs" />
+      ) : isVideo ? (
+        <video controls src={message.attachment_url} className="max-w-xs max-h-64 rounded-lg" />
+      ) : (
+        <div className="flex items-center gap-3 p-2 rounded-lg bg-black/10 dark:bg-white/10">
+          <FileIcon className="h-8 w-8 flex-shrink-0" />
+          <div className="flex-grow min-w-0">
+            <p className="text-sm truncate">
+              {message.attachment_url.split('/').pop()?.split('_').slice(1).join('_') || 'File terlampir'}
+            </p>
+          </div>
+          <Button asChild size="icon" variant="ghost">
+            <Link href={message.attachment_url} target="_blank" download>
+              <Download className="h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+      )}
+    </div>
+  )
 }
 
 export function MessageList({ messages, isBotTyping }: MessageListProps) {
@@ -64,7 +98,7 @@ export function MessageList({ messages, isBotTyping }: MessageListProps) {
               >
                 {message.content && <p className="text-sm whitespace-pre-wrap">{message.content}</p>}
                 <AttachmentPreview message={message} />
-                <span className="text-xs opacity-70 mt-1 block">
+                <span className="text-xs opacity-70 mt-1 block text-right">
                   {new Date(message.created_at).toLocaleTimeString('id-ID', {
                     hour: '2-digit',
                     minute: '2-digit',
