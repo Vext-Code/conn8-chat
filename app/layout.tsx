@@ -10,6 +10,10 @@ export const metadata: Metadata = {
   title: 'Chatbot App',
   description: 'Aplikasi chatbot dengan Next.js dan Supabase',
   manifest: '/manifest.json',
+  icons: {
+    icon: '/icons/icon-192x192.png',
+    apple: '/icons/icon-192x192.png',
+  },
 };
 
 export default function RootLayout({
