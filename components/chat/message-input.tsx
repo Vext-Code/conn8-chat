@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Paperclip, Send } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
@@ -17,12 +17,12 @@ interface MessageInputProps {
 export function MessageInput({ chatId, onSendMessage, onUploadStart }: MessageInputProps) {
   const [isLoading, setIsLoading] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const content = inputRef.current?.value ?? ''
+  const handleSubmit = async (event?: React.FormEvent<HTMLFormElement>) => {
+    event?.preventDefault()
+    const content = textareaRef.current?.value ?? ''
     
     if (!content.trim()) {
       return
@@ -40,12 +40,11 @@ export function MessageInput({ chatId, onSendMessage, onUploadStart }: MessageIn
       })
     } finally {
       setIsLoading(false)
-      inputRef.current?.focus()
+      textareaRef.current?.focus()
     }
   }
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
+  const handleFileUpload = async (file: File) => {
     if (!file) return
 
     setIsLoading(true)
@@ -82,9 +81,31 @@ export function MessageInput({ chatId, onSendMessage, onUploadStart }: MessageIn
     }
   }
 
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      handleFileUpload(file)
+    }
+  }
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault()
+      formRef.current?.requestSubmit()
+    }
+  }
+
+  const handlePaste = (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const file = event.clipboardData.files[0]
+    if (file && file.type.startsWith('image/')) {
+      event.preventDefault()
+      handleFileUpload(file)
+    }
+  }
+
   return (
     <div className="border-t p-4">
-      <form ref={formRef} onSubmit={handleSubmit} className="flex gap-2 items-center">
+      <form ref={formRef} onSubmit={handleSubmit} className="flex gap-2 items-start">
         <input
           type="file"
           ref={fileInputRef}
@@ -98,18 +119,22 @@ export function MessageInput({ chatId, onSendMessage, onUploadStart }: MessageIn
           size="icon"
           onClick={() => fileInputRef.current?.click()}
           disabled={isLoading}
+          className="mt-1"
         >
           <Paperclip className="h-5 w-5" />
         </Button>
-        <Input
-          ref={inputRef}
+        <Textarea
+          ref={textareaRef}
           name="content"
-          placeholder="Ketik pesan Anda atau lampirkan file..."
+          placeholder="Tekan Shift + Enter untuk baris baru"
           disabled={isLoading}
-          className="flex-1"
+          className="flex-1 resize-none"
+          rows={1}
+          onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
           autoComplete="off"
         />
-        <Button type="submit" disabled={isLoading} size="icon">
+        <Button type="submit" disabled={isLoading} size="icon" className="mt-1">
           <Send className="h-4 w-4" />
         </Button>
       </form>
